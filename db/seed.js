@@ -1,25 +1,82 @@
 const {client, getAllUsers} = require('./index');
 
+async function dropTables(){
+
+    try {
+        console.log("Starting to drop tables...")
+
+        await client.query(`
+        DROP TABLE IF EXISTS users;
+        `)
+
+
+      console.log("Finished dropping tables!")  
+    } catch (error) {
+        console.error("Error dropping tables!")
+        throw error;
+        
+    }
+
+}
+
+async function createTables() {
+
+    try {
+        console.log("Starting to build tables...")
+
+        await client.query(`
+        CREATE TABLE users(
+            id SERIAL PRIMARY KEY,
+            username varchar(255) UNIQUE NOT NULL,
+            password varchar(255) NOT NULL
+        );
+        `);
+
+      console.log("Finished building tables!")  
+    } catch (error) {
+        console.error("Error building tables!")
+        throw error;
+        
+    }
+}
+
+async function rebuildDB(){
+    try {
+        client.connect();
+
+        await dropTables();
+        await createTables();
+
+    } catch (error) {
+       throw error;
+    }
+
+}
+
 async function testDB(){
 
     try {
-        //connect client to database
-        client.connect();
+        console.log("Starting to test database...")
 
         //query = promise, so need to await 
         const users = await getAllUsers();
 
 
-        console.log(users)
+        console.log("getAllUsers",users)
 
+        console.log("Finished testing database...")
     } catch (error) {
-        console.log(error)
+        console.error("Error testing database")
+        throw error
         
-    } finally {
-        //important to close connection
-        client.end();
     }
 
 }
 
-testDB();
+
+rebuildDB()
+    .then(testDB)
+    .catch(console.error)
+    .finally(() => 
+        client.end()
+        )

@@ -1,7 +1,12 @@
 const {client,
      getAllUsers, 
      createUser,
-     updateUser} = require('./index');
+     updateUser,
+     updatePosts,
+     createPosts,
+     getAllPosts,
+     getPostsByUser,
+     getUserById   } = require('./index');
 
 async function createInitialUsers(){
     try {
@@ -18,6 +23,20 @@ async function createInitialUsers(){
         console.error("Error creating users")
         throw error;
     }
+}
+
+async function createInitialPosts(){
+    try {
+        
+        const [albert, sandra, glamgal] = await getAllUsers();
+        await createPosts({authorId:albert.id, title:"firstPosts", content:"This is my first posts. I hope I love writing blogs as much as I love writing them."})
+
+
+    } catch (error) {
+        throw error
+    }
+
+
 }
 
 async function dropTables(){
@@ -84,6 +103,7 @@ async function rebuildDB(){
         await dropTables();
         await createTables();
         await createInitialUsers();
+        await createInitialPosts();
 
     } catch (error) {
        throw error;
@@ -105,6 +125,17 @@ async function testDB(){
         const updateUserResult = await updateUser(users[0].id,{name: "NewName SoGood",location: "Lesterville,KY"});
         console.log("Result:", updateUserResult)
 
+        console.log("Calling getAllPosts")
+        const posts = await getAllPosts();
+        console.log("Result:", posts)
+
+        console.log("Calling updatePosts on posts [0]")
+        const updatePostResult = await updatePosts(posts[0].id,{title: "New Title", content: "Updated Content"});
+        console.log("Result:", updatePostResult)
+
+        console.log("Calling getUserById with 1");
+        const albert = await getUserById(1);
+        console.log("Result:", albert);
 
         console.log("Finished testing database...")
     } catch (error) {

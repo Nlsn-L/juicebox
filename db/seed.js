@@ -6,7 +6,11 @@ const {client,
      createPosts,
      getAllPosts,
      getPostsByUser,
-     getUserById   } = require('./index');
+     getUserById,
+     getPostById,
+     createTags,
+     createPostTag,
+     addTagsToPost } = require('./index');
 
 async function createInitialUsers(){
     try {
@@ -29,7 +33,11 @@ async function createInitialPosts(){
     try {
         
         const [albert, sandra, glamgal] = await getAllUsers();
-        await createPosts({authorId:albert.id, title:"firstPosts", content:"This is my first posts. I hope I love writing blogs as much as I love writing them."})
+        await createPosts({authorId:albert.id, title:"First Posts", content:"This is my first posts. I hope I love writing blogs as much as I love writing them."})
+        await createPosts({authorId:sandra.id, title:"How does this work?", content:"Seriously does this even do anything?"})
+        await createPosts({authorId:glamgal.id, title:"Living the glam life", content:"Do you even? I swear that half of you are posing."})
+
+
 
 
     } catch (error) {
@@ -39,17 +47,48 @@ async function createInitialPosts(){
 
 }
 
+async function createInitialTags(){
+
+    try {
+        console.log("Starting to create tags...")
+        const [happy,sad,inspo,catman] = await createTags([
+            '#happy',
+            '#worst-day-ever',
+            '#youcandoanything',
+            '#catmandoeverything'
+    ]);
+    
+    const [postOne,postTwo,postThree] = await getAllPosts();
+   
+    await addTagsToPost(postOne.id,[happy,inspo]);
+    console.log("Line 64")
+    await addTagsToPost(postTwo.id,[sad,inspo]);
+    await addTagsToPost(postThree.id,[happy,catman,inspo]);
+
+
+    console.log("finished creating tags!")
+    } catch (error) {
+        console.log("Error creating tags!")
+        throw error
+    }
+
+}
+
+
 async function dropTables(){
 
     try {
         console.log("Starting to drop tables...")
         
         await client.query(`
+        DROP TABLE IF EXISTS post_tags;
+        DROP TABLE IF EXISTS tags;
         DROP TABLE IF EXISTS posts;
+        DROP TABLE IF EXISTS users;
         `)
 
         await client.query(`
-        DROP TABLE IF EXISTS users
+        
         `)
         
 
@@ -77,8 +116,6 @@ async function createTables() {
             location VARCHAR(255) NOT NULL,
             active BOOLEAN DEFAULT true
         );
-        `);
-        await client.query(`
         CREATE TABLE posts(
             id SERIAL PRIMARY KEY,
             "authorId" INTEGER REFERENCES users(id) NOT NULL,
@@ -86,7 +123,16 @@ async function createTables() {
             content TEXT NOT NULL,
             active BOOLEAN DEFAULT true
         );
-        `)
+        CREATE TABLE tags(
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) UNIQUE NOT NULL
+        );
+        CREATE TABLE post_tags(
+            "postId" INTEGER REFERENCES posts(id) NOT NULL,
+            "tagId" INTEGER REFERENCES tags(id) NOT NULL,
+            UNIQUE ("postId", "tagId")
+        );
+        `);
 
       console.log("Finished building tables!")  
     } catch (error) {
@@ -104,6 +150,7 @@ async function rebuildDB(){
         await createTables();
         await createInitialUsers();
         await createInitialPosts();
+        await createInitialTags();
 
     } catch (error) {
        throw error;

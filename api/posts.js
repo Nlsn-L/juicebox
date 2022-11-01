@@ -81,11 +81,26 @@ postsRouter.use((req, res, next) => {
     next();
 });
 postsRouter.get('/', async (req, res) => {
-    const posts = await getAllPosts()
-    
-    res.send({
+    try {
+       const allPosts = await getAllPosts()
+       
+        const posts = allPosts.filter(post => {
+            if(post.active){
+                return true
+            }
+
+            if(req.user && post.author.id === req.user.id){
+                return true
+            }
+
+            return false
+        }) 
+    res.send({ 
         posts
-    });
+    }); 
+    } catch ({name, message}) {
+        next({name, message})
+    }   
 });
 
 postsRouter.delete('/:postId',requireUser,async (req,res,next) => {
@@ -113,7 +128,6 @@ postsRouter.delete('/:postId',requireUser,async (req,res,next) => {
 
 
 })
-
 
 
 

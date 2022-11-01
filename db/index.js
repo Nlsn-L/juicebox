@@ -192,7 +192,6 @@ async function getPostById(postId){
         JOIN post_tags ON tags.id = post_tags."tagId"
         WHERE post_tags."postId" = $1; 
         `,[postId])
-        console.log(tags, "this Is Tags")
         const {rows : [author]} = await client.query(`
         SELECT id,username,name,location
         FROM users

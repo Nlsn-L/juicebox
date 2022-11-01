@@ -5,7 +5,6 @@ const token = jwt.sign({id: 1, username: 'albert'}, process.env.JWT_SECRET)
 token;
 
 
-
 const { getAllUsers, getUserByUsername, createUser } = require("../db")
 usersRouter.use((req,res,next) => {
     console.log("A request is being made to /users")

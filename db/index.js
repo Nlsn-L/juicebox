@@ -179,6 +179,14 @@ async function getPostById(postId){
        WHERE id = $1  
         `,[postId])
 
+        if (!post){
+            throw {
+                name: "PostNotFoundError",
+                message: "Could not find a post with that post id"
+            }
+        }
+
+
         const {rows : [tags]} = await client.query(`
         SELECT tags.* FROM tags
         JOIN post_tags ON tags.id = post_tags."tagId"
